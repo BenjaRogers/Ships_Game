@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -33,38 +33,47 @@ public class GameMaster : MonoBehaviour
         movesShip1 = boats[0].moves;
         movesShip2 = boats[1].moves;
         moveNum = 0;
-       
+        StartCoroutine(LoopTurns());
     }
-    void Update()
-    {
-        if (playerTurn == 3)
-        {
 
-            if (moveNum <= 3)
+    IEnumerator LoopTurns()
+    {
+        while (true)
+        {
+            if (playerTurn == 3)
             {
-                if(Vector2.Distance(boats[0].transform.position, boats[0].pos) == 0f &&
+                if (Vector2.Distance(boats[0].transform.position, boats[0].pos) == 0f &&
                     Vector2.Distance(boats[1].transform.position, boats[1].pos) == 0.0f &&
                     boats[0].transform.rotation == Quaternion.Euler(0, 0, boats[0].degree) &&
                     boats[1].transform.rotation == Quaternion.Euler(0, 0, boats[1].degree))
                 {
-                    ResolveMoves(moveNum);
-                    ResolveShots(moveNum);
-                    moveNum += 1;
+
+                    if (moveNum <= 3)
+                    {
+                        ResolveMoves(moveNum);
+                        yield return new WaitForSeconds(2f);
+                        ResolveShots(moveNum);
+                        moveNum += 1;
+                        yield return new WaitForSeconds(2f);
+                    }
+                    else
+                    {
+                        moveNum = 0; // 3 Moves complete, we end the turn and reset
+                        EndTurn();
+                        yield return null;
+                    }
                 }
-                
             }
             else
             {
-                moveNum = 0;
-                EndTurn();
-            }            
-        }
-        else
-        {
-            if (Input.GetKeyDown(KeyCode.Return))
-            {
-                EndTurn();
+                if (Input.GetKeyDown(KeyCode.Return))
+                {
+                    EndTurn();
+                    yield return null;
+                }
             }
+                
+            yield return null;
         }
     }
 
@@ -96,6 +105,12 @@ public class GameMaster : MonoBehaviour
             boats[1].moves = new List<string>();
             movesShip1 = boats[0].moves;
             movesShip2 = boats[1].moves;
+
+            shots[0].shots = new List<int>();
+            shots[1].shots = new List<int>();
+            shotsShip1 = shots[0].shots;
+            shotsShip2 = shots[1].shots;
+
             boats[0].availableMoves = 4;
             boats[1].availableMoves = 4;
             boats[0].turnOver = false;
